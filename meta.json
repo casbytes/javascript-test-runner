@@ -1,0 +1,16 @@
+{
+  "course_meta": {
+    "title": "front-end development",
+    "published": false,
+    "jsonId": "course-front-end-development"
+  },
+  "modules": [
+    {
+      "module_meta": {
+        "title": "front end introduction",
+        "jsonId": "course-front-end-development-module-introduction"
+      },
+      "sub_modules": []
+    }
+  ]
+}
