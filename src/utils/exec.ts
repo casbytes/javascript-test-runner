@@ -7,13 +7,14 @@ interface ExecOptions {
 interface ExecResult {
   stdout: string;
   stderr: string;
+  code: number | null;
 }
 
 export async function exec(
   command: string,
   options: ExecOptions = {}
 ): Promise<ExecResult> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const child = spawn(command, { shell: true, ...options });
 
     let stdout = "";
@@ -32,11 +33,15 @@ export async function exec(
     }
 
     child.on("exit", (code) => {
-      if (code === 0) {
-        resolve({ stdout, stderr });
-      } else {
-        reject(new Error(`Command failed with exit code ${code}\n${stderr}`));
-      }
+      resolve({ stdout, stderr, code });
+    });
+
+    child.on("error", (error) => {
+      resolve({
+        stdout,
+        stderr: error.message,
+        code: null,
+      });
     });
   });
 }
