@@ -1,8 +1,6 @@
 import "dotenv/config";
 import invariant from "tiny-invariant";
 import path from "node:path";
-import { exec as execSync } from "node:child_process";
-import util from "node:util";
 import fsExtra from "fs-extra";
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
@@ -11,8 +9,6 @@ import { git } from "./utils/simple-git";
 import { HTTPException } from "hono/http-exception";
 
 const app = new Hono();
-
-// const exec = util.promisify(execSync);
 
 app.post("/check/:repo", async (c) => {
   const repo = c.req.param("repo");
@@ -32,7 +28,19 @@ app.post("/check/:repo", async (c) => {
   const testResultsFile = path.join(repoLocalPath, "test-results.json");
 
   try {
-    invariant(repo, "repo is required");
+    if (
+      !repo ||
+      repo === "" ||
+      repo === undefined ||
+      repo === null ||
+      repo.length <= 3
+    ) {
+      throw new HTTPException(400, {
+        message:
+          "Your Github repo is required, please fork the appropiate repo, complete the checkpoint, and try again.",
+      });
+    }
+
     invariant(username, "username is required");
     if (!fsExtra.existsSync(repoLocalPath)) {
       fsExtra.mkdirSync(repoLocalPath, { recursive: true });
@@ -41,56 +49,33 @@ app.post("/check/:repo", async (c) => {
     await git.cwd(repoLocalPath);
     await git.clone(githubRepoUrl, repoLocalPath);
 
-    // const eslintExt = ["js", "mjs", "cjs"];
-    // const vitestExt = ["js", "mjs", "cjs", "ts"];
-
-    // const eslintConfigFilenames = eslintExt.map(
-    //   (ext) => `eslint.config.${ext}`
-    // );
-    // const vitestConfigFilenames = vitestExt.map(
-    //   (ext) => `vitest.config.${ext}`
-    // );
-    // const viteConfigFilenames = vitestExt.map((ext) => `vite.config.${ext}`);
-
-    // const allVitestConfigFilenames = [
-    //   ...vitestConfigFilenames,
-    //   ...viteConfigFilenames,
-    // ];
-
-    // function copyFileToDest(filename: string) {
-    //   fsExtra.copyFileSync(
-    //     path.join(testSpace, filename),
-    //     path.join(repoLocalPath, filename)
-    //   );
-    // }
-
-    // function overrideConfigFiles(configFilenames: string[]) {
-    //   for (const originalFilename of configFilenames) {
-    //     const jsFilename = originalFilename.replace(
-    //       /\.(js|ts|mjs|cjs)$/,
-    //       ".js"
-    //     );
-    //     const jsConfigPath = path.join(testSpace, jsFilename);
-    //     const configPath = path.join(repoLocalPath, originalFilename);
-    //     if (fsExtra.existsSync(configPath)) {
-    //       fsExtra.removeSync(configPath);
-    //     }
-    //     if (fsExtra.existsSync(jsConfigPath)) {
-    //       copyFileToDest(jsFilename);
-    //     }
-    //   }
-    // }
-
-    // overrideConfigFiles(eslintConfigFilenames);
-    // overrideConfigFiles(allVitestConfigFilenames);
-    // copyFileToDest("setupTests.js");
-
     const eslintCommand = `npx eslint . --config=${eslintConfig} -f json -o ${eslintResultsFile}`;
     const vitestCommand = `npx vitest run --config=${vitestConfig} --reporter=json --outputFile=${testResultsFile}`;
 
-    await exec("npm install", { cwd: repoLocalPath });
-    await exec(eslintCommand, { cwd: testSpace });
-    await exec(vitestCommand, { cwd: testSpace });
+    const { stderr: iStderr } = await exec("npm install", {
+      cwd: repoLocalPath,
+    });
+    if (iStderr) {
+      throw new HTTPException(500, {
+        message: iStderr,
+      });
+    }
+    const { stderr: esLintStderr } = await exec(eslintCommand, {
+      cwd: testSpace,
+    });
+    if (esLintStderr) {
+      throw new HTTPException(500, {
+        message: esLintStderr,
+      });
+    }
+    const { stderr: viestStderr } = await exec(vitestCommand, {
+      cwd: testSpace,
+    });
+    if (viestStderr) {
+      throw new HTTPException(500, {
+        message: viestStderr,
+      });
+    }
 
     const lintResults = await fsExtra.readJson(eslintResultsFile);
     const testResults = await fsExtra.readJson(testResultsFile);
