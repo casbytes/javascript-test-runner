@@ -15,18 +15,18 @@ import {
 
 const app = new Hono();
 
-app.post("/:githubUsername", async (c) => {
-  const USERNAME = c.req.param("githubUsername");
-  const REPO = c.req.query("checkpointRepo");
-  const PATH = c.req.query("checkpointPath");
+app.post("/:username", async (c) => {
+  const USERNAME = c.req.param("username");
+  const REPO = c.req.query("repo");
+  const PATH = c.req.query("path");
   const HOST = c.req.header("X-Frontend-For") || "localhost";
-  const TEST_ENV = c.req.header("X-Test-Env") as "node" | "browser" | undefined;
+  const TEST_ENV = c.req.header("X-Test-Env") as "node" | "browser";
   invariant(REPO, "Repo name is required");
   invariant(USERNAME, "Username is required");
   invariant(PATH, "Checkpoint path is required");
   invariant(TEST_ENV, "Test environment is required");
 
-  const TESTSPACE = path.join(process.cwd(), "testspace");
+  const TESTSPACE = path.join(process.cwd(), "__testspace__");
   const REPO_URL = `${USERNAME}/${REPO}`;
   const GITHUB_REPO_URL = `https://github.com/${REPO_URL}.git`;
 
@@ -97,5 +97,7 @@ app.post("/:githubUsername", async (c) => {
     }
   }
 });
+
+app.get("/healthcheck", (c) => {});
 
 export { app };
