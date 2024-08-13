@@ -3,7 +3,7 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    include: ["**/*.{test,spec}.?(c|m)[jt]s?(x)"],
+    include: ["**/__tests__/**/*.{test,spec}.?(c|m)[jt]s?(x)"],
     globals: true,
     sequence: {
       concurrent: true,

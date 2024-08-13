@@ -3,7 +3,6 @@ import * as tar from "tar";
 import { git } from "./simple-git";
 import { exec } from "./exec";
 import path from "node:path";
-import http from "node:http";
 
 /**
  * Clone a GitHub repository to a local path
@@ -55,7 +54,7 @@ export async function runLinter(
   checkpointDir: string,
   lintResultFile: string
 ) {
-  const eslintCommand = `npx eslint . --config=${eslintConfigFile} -f json -o ${lintResultFile}`;
+  const eslintCommand = `npx eslint . --config=${eslintConfigFile} -f json -o ${lintResultFile} --cache`;
   return exec(eslintCommand, { cwd: checkpointDir });
 }
 

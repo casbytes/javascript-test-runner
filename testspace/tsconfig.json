@@ -8,6 +8,5 @@
     "sourceMap": true,
     "verbatimModuleSyntax": true
   },
-  // "include": ["packages"],
   "exclude": ["node_modules"]
 }

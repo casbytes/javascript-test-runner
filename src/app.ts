@@ -19,6 +19,7 @@ app.post("/:githubUsername", async (c) => {
   const USERNAME = c.req.param("githubUsername");
   const REPO = c.req.query("checkpointRepo");
   const PATH = c.req.query("checkpointPath");
+  const HOST = c.req.header("X-Frontend-For") || "localhost";
   const TEST_ENV = c.req.header("X-Test-Env") as "node" | "browser" | undefined;
   invariant(REPO, "Repo name is required");
   invariant(USERNAME, "Username is required");
