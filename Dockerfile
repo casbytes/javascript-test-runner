@@ -1,6 +1,8 @@
 # base node image
 FROM node:20-bookworm-slim AS base
 
+ENV NODE_ENV=production
+
 
 # install openssl and sqlite3 for prisma
 RUN apt-get update && apt-get install -y git
@@ -19,7 +21,7 @@ FROM base as production-deps
 WORKDIR /app
 
 COPY --from=deps /app/node_modules /app/node_modules
-ADD package.json package-lock.json ./
+ADD package.json package-lock.json .npmrc ./
 RUN npm prune --omit=dev
 
 # build app
@@ -46,7 +48,7 @@ COPY --from=build /app/dist /app/dist
 
 ADD . .
 
-WORKDIR /app/testspace
+WORKDIR /app/__testspace__
 RUN npm install --include=dev
 
 WORKDIR /app

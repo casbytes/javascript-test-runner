@@ -14,22 +14,32 @@ import {
 } from "./utils/helpers";
 import { TEST_SPACE } from "./utils/simple-git";
 
+const CLIENT_IP_ADDRESS = process.env.CLIENT_IP_ADDRESS;
 const app = new Hono();
+
+app.get("/", async (c) => {
+  return c.json({ message: "JavaScript Checker." });
+});
 
 app.post("/:username", async (c) => {
   const USERNAME = c.req.param("username");
   const REPO = c.req.query("repo");
   const PATH = c.req.query("path");
-  const HOST = c.req.header("X-Frontend-For") || "localhost";
   const TEST_ENV = c.req.header("X-Test-Env") as "node" | "browser";
+  const ADDRESSES = c.req.header("X-Forwarded-For") as string;
+
   invariant(REPO, "Repo name is required");
   invariant(USERNAME, "Username is required");
   invariant(PATH, "Checkpoint path is required");
   invariant(TEST_ENV, "Test environment is required");
+  invariant(
+    ADDRESSES.split(",")[0] === CLIENT_IP_ADDRESS,
+    "Invalid client IP address"
+  );
 
   const TESTSPACE = path.join(process.cwd(), TEST_SPACE);
   const REPO_URL = `${USERNAME}/${REPO}`;
-  const GITHUB_REPO_URL = `git@github.com:${REPO_URL}.git`;
+  const GITHUB_REPO_URL = `https://github.com/${REPO_URL}.git`;
 
   const FOLDER_NAME = `${USERNAME}-${REPO}`;
   const CHECKPOINT_TEMP_DIR = path.join(TESTSPACE, `${FOLDER_NAME}.temp`);
@@ -102,6 +112,7 @@ app.post("/:username", async (c) => {
 app.get("/healthcheck", async (c) => {
   const host =
     c.req.header("X-Forwarded-Host") ?? c.req.header("host") ?? "localhost";
+  console.log("Healthcheck", host);
 
   try {
     await Promise.all([
