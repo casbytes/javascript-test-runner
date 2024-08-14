@@ -1,7 +1,8 @@
 import path from "node:path";
 import { simpleGit, SimpleGit, SimpleGitOptions } from "simple-git";
 
-const gitBaseDir = path.resolve(process.cwd(), "testspace");
+export const TEST_SPACE = "__testspace__";
+const gitBaseDir = path.resolve(process.cwd(), TEST_SPACE);
 const options: Partial<SimpleGitOptions> = {
   baseDir: gitBaseDir,
   binary: "git",

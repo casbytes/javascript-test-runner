@@ -12,6 +12,7 @@ import {
   runLinter,
   runTests,
 } from "./utils/helpers";
+import { TEST_SPACE } from "./utils/simple-git";
 
 const app = new Hono();
 
@@ -26,9 +27,9 @@ app.post("/:username", async (c) => {
   invariant(PATH, "Checkpoint path is required");
   invariant(TEST_ENV, "Test environment is required");
 
-  const TESTSPACE = path.join(process.cwd(), "__testspace__");
+  const TESTSPACE = path.join(process.cwd(), TEST_SPACE);
   const REPO_URL = `${USERNAME}/${REPO}`;
-  const GITHUB_REPO_URL = `https://github.com/${REPO_URL}.git`;
+  const GITHUB_REPO_URL = `git@github.com:${REPO_URL}.git`;
 
   const FOLDER_NAME = `${USERNAME}-${REPO}`;
   const CHECKPOINT_TEMP_DIR = path.join(TESTSPACE, `${FOLDER_NAME}.temp`);
@@ -98,6 +99,25 @@ app.post("/:username", async (c) => {
   }
 });
 
-app.get("/healthcheck", (c) => {});
+app.get("/healthcheck", async (c) => {
+  const host =
+    c.req.header("X-Forwarded-Host") ?? c.req.header("host") ?? "localhost";
+
+  try {
+    await Promise.all([
+      //some other checks
+      fetch(`${new URL(c.req.url).protocol}${host}`, {
+        method: "HEAD",
+        headers: { "X-Healthcheck": "true" },
+      }).then((r) => {
+        if (!r.ok) return Promise.reject(r);
+      }),
+    ]);
+    return new Response("OK");
+  } catch (error: unknown) {
+    console.error(c.req.url, "healthcheck ❌", { error });
+    return new Response("ERROR", { status: 500 });
+  }
+});
 
 export { app };

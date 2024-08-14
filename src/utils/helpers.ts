@@ -12,7 +12,10 @@ import path from "node:path";
 export async function cloneRepo(githubUrl: string, tempCheckpointDir: string) {
   await fsExtra.ensureDir(tempCheckpointDir);
   await git.cwd(tempCheckpointDir);
-  await git.clone(githubUrl, tempCheckpointDir, { "--depth": 1 });
+  await git.clone(githubUrl, tempCheckpointDir, {
+    "--depth": 1,
+    "--branch": "main",
+  });
 }
 
 /**
