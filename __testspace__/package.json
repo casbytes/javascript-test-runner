@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "main": "",
-  "scripts": {
-    "dev": "tsx watch src/index.ts"
-  },
+  "scripts": {},
   "keywords": [
     "tests",
     "unit tests",

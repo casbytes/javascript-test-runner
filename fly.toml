@@ -13,6 +13,9 @@ swap_size_mb = 512
   internal_port = 8080
   processes = [ "app" ]
   protocol = "tcp"
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
   script_checks = [ ]
 
   [services.concurrency]
@@ -51,3 +54,8 @@ swap_size_mb = 512
     method = "GET"
     timeout = "5s"
     path = "/healthcheck"
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1

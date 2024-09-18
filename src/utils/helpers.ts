@@ -24,15 +24,11 @@ export async function cloneRepo(githubUrl: string, tempCheckpointDir: string) {
  * @param testsDir - The directory to tar
  * @param outputFile - The path to write the tarball to
  */
-export async function createTar(
-  srcDir: string,
-  testsDir: string,
-  outputFile: string
-) {
+export async function createTar(srcDir: string, outputFile: string) {
   await fsExtra.ensureFile(outputFile);
   await tar.create(
     { gzip: true, file: outputFile, cwd: path.dirname(srcDir) },
-    [path.basename(srcDir), path.basename(testsDir)]
+    [path.basename(srcDir)]
   );
 }
 

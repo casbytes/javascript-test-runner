@@ -21,6 +21,14 @@ app.get("/", async (c) => {
   return c.json({ message: "JavaScript Checker." });
 });
 
+/**
+ * POST /:username
+ * @param {string} username - Student GitHub username
+ * @param {string} repo - Student GitHub repository name
+ * @param {string} path - Checkpoint path
+ * @param {string} X-Test-Env - Test environment (node | browser)
+ * @param {string} X-Forwarded-For - Client IP address
+ */
 app.post("/:username", async (c) => {
   const USERNAME = c.req.param("username");
   const REPO = c.req.query("repo");
@@ -48,7 +56,6 @@ app.post("/:username", async (c) => {
   const CHECKPOINT_PATH = path.join(CHECKPOINT_TEMP_DIR, PATH);
   const CHECKPOINT_DIR = path.join(TESTSPACE, FOLDER_NAME);
   const CHECKPOINT_SRC_DIR = path.join(CHECKPOINT_PATH, "src");
-  const CHECKPOINT_TEST_DIR = path.join(CHECKPOINT_PATH, "__tests__");
 
   const ESLINT_CONFIG = path.join(TESTSPACE, "eslint.config.mjs");
   const VITEST_CONFIG = path.join(TESTSPACE, "vitest.config.ts");
@@ -57,11 +64,7 @@ app.post("/:username", async (c) => {
 
   try {
     await cloneRepo(GITHUB_REPO_URL, CHECKPOINT_TEMP_DIR);
-    await createTar(
-      CHECKPOINT_SRC_DIR,
-      CHECKPOINT_TEST_DIR,
-      CHECKPOINT_TAR_DIR
-    );
+    await createTar(CHECKPOINT_SRC_DIR, CHECKPOINT_TAR_DIR);
     await extractTar(CHECKPOINT_TAR_DIR, CHECKPOINT_DIR);
     const { stderr: lintStderr } = await runLinter(
       ESLINT_CONFIG,
@@ -109,6 +112,9 @@ app.post("/:username", async (c) => {
   }
 });
 
+/**
+ * Healthcheck endpoint
+ */
 app.get("/healthcheck", async (c) => {
   const host =
     c.req.header("X-Forwarded-Host") ?? c.req.header("host") ?? "localhost";
