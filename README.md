@@ -1,1 +1,1 @@
-# CASBytes javascript test runner
+# CASBytes Remote test runner

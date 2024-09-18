@@ -34,16 +34,19 @@ app.post("/:username", async (c) => {
   const REPO = c.req.query("repo");
   const PATH = c.req.query("path");
   const TEST_ENV = c.req.header("X-Test-Env") as "node" | "browser";
-  const ADDRESSES = c.req.header("X-Forwarded-For") as string;
+  // const ADDRESSES = c.req.header("X-Forwarded-For") as string;
+
+  /**
+   * 1. curl the user repo given the username and repo name
+   * 2. unzip the repo to a temp directory
+   * 3. download test file from s3 bucket and copy it to the temp directory
+   * 4. run tests and return results
+   */
 
   invariant(REPO, "Repo name is required");
   invariant(USERNAME, "Username is required");
   invariant(PATH, "Checkpoint path is required");
   invariant(TEST_ENV, "Test environment is required");
-  invariant(
-    ADDRESSES.split(",")[0] === CLIENT_IP_ADDRESS,
-    "Invalid client IP address"
-  );
 
   const TESTSPACE = path.join(process.cwd(), TEST_SPACE);
   const REPO_URL = `${USERNAME}/${REPO}`;
