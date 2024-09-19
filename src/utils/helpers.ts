@@ -1,46 +1,6 @@
-import fsExtra from "fs-extra";
-import * as tar from "tar";
-import { git } from "./simple-git";
-import { exec } from "./exec";
 import path from "node:path";
-
-/**
- * Clone a GitHub repository to a local path
- * @param githubUrl - The URL of the GitHub repository to clone
- * @param checkpointDir - The path to clone the repository to
- */
-export async function cloneRepo(githubUrl: string, tempCheckpointDir: string) {
-  await fsExtra.ensureDir(tempCheckpointDir);
-  await git.cwd(tempCheckpointDir);
-  await git.clone(githubUrl, tempCheckpointDir, {
-    "--depth": 1,
-    "--branch": "main",
-  });
-}
-
-/**
- * Create a tarball of a directory
- * @param srcDir - The directory to tar
- * @param testsDir - The directory to tar
- * @param outputFile - The path to write the tarball to
- */
-export async function createTar(srcDir: string, outputFile: string) {
-  await fsExtra.ensureFile(outputFile);
-  await tar.create(
-    { gzip: true, file: outputFile, cwd: path.dirname(srcDir) },
-    [path.basename(srcDir)]
-  );
-}
-
-/**
- * Extract a tarball to a directory
- * @param file - The path to the tarball
- * @param outputDir - The directory to extract the tarball to
- */
-export async function extractTar(file: string, outputDir: string) {
-  await fsExtra.ensureDir(outputDir);
-  await tar.extract({ file, cwd: outputDir });
-}
+import fsExtra from "fs-extra";
+import { exec } from "./exec";
 
 /**
  * Run the ESLint linter on a repository

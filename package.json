@@ -1,20 +1,20 @@
 {
-  "name": "rtr",
+  "name": "test-runner",
   "type": "module",
   "exports": "./dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "pkgroll --env.NODE_ENV=production --target=node20 --clean-dist --minify",
+    "build": "pkgroll --env.NODE_ENV=production --target=node20 --clean-dist",
     "start": "node ./dist/index.js"
   },
   "dependencies": {
     "@hono/node-server": "^1.12.0",
+    "@upstash/qstash": "^2.7.8",
     "dotenv": "^16.4.5",
     "fs-extra": "^11.2.0",
     "hono": "^4.4.13",
-    "simple-git": "^3.25.0",
-    "tar": "^7.4.3",
-    "tiny-invariant": "^1.3.3"
+    "tiny-invariant": "^1.3.3",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",

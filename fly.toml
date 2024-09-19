@@ -1,8 +1,12 @@
-app = 'javascript-checker'
+app = 'test-runner'
 primary_region = 'ams'
 kill_signal = 'SIGINT'
 kill_timeout = '5s'
 swap_size_mb = 512
+
+[mounts]
+  source = "shared"
+  destination = "/shared"
 
 [experimental]
   allowed_public_ports = [ ]
