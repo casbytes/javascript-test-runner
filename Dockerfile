@@ -2,9 +2,6 @@ FROM node:20-bookworm-slim AS base
 
 ENV NODE_ENV=production
 
-RUN apt-get update && apt-get install -y docker openrc bash\
-    && rm -rf /var/lib/apt/lists/*
-
 FROM base as deps
 
 WORKDIR /app
@@ -40,5 +37,5 @@ COPY --from=production-deps /app/node_modules /app/node_modules
 COPY --from=build /app/dist /app/dist
 
 ADD . .
-RUN rc-update add docker boot
+
 CMD ["npm", "start"]

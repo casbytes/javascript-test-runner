@@ -6,6 +6,13 @@ import { HTTPException } from "hono/http-exception";
 import { receiver } from "../utils/qstash";
 import { exec } from "../utils/exec";
 
+type RequestBody = {
+  username: string;
+  testEnvironment: "python" | "node" | "browser";
+  checkpointPath: string;
+  repo: string;
+};
+
 const { BASE_URL } = process.env;
 
 const checker = new Hono();
@@ -31,30 +38,21 @@ checker.post("/:username", async (c) => {
    * #############################
    *
    * 1. Download the repository
-   * 2. extract the checkpoint from the repository using the checkpointPath
-   * 3. download the checkpoint test file from s3 using the checkpointPath
-   * 4. create a __tests__ dir in the root dir of the checkpoint and insert the tests file inside if it.
-   * 5. copy the checkpoint folder to ${username}-${repo}
-   * 6. Spin up the appropriate docker container given the TEST_ENV and run
-   *   the tests
+   * 2. extract the checkpoint from the repository using the checkpointcheckpointPath
+   * 3. copy the checkpoint folder to ${username}-${repo}
+   * 4. Spin up the appropriate docker container given the TEST_ENV and run
+   *   the tests`
    * #############################
    * script.sh file flow
    * #############################
-   * 7. Run the script.sh file that in turn run lints and write the results
-   *  to a lint-results.json file, run tests and wrote the results to a
+   * 5. Run the script.sh file that in turn run lints and write the results
+   *  to a lint-results.json file, run tests and write the results to a
    *  test-results.json file. If any error occur that is not as a result of
    *  lint or test failure, write the error to an error.json file.
-   * 8. Read the results from the lint-results.json, test-results.json and
-   * error.json file and send the results to the client, if they exist.
    */
 
-  const { username, testEnv, checkpointPath, repo } =
-    c.req.json() as unknown as {
-      repo: string;
-      checkpointPath: string;
-      username: string;
-      testEnv: "python" | "node" | "browser";
-    };
+  const { username, testEnvironment, checkpointPath, repo } =
+    c.req.json() as unknown as RequestBody;
 
   try {
     const isValid = await receiver.verify({
@@ -68,8 +66,8 @@ checker.post("/:username", async (c) => {
         message: "Unauthorized!",
       });
     }
-    const rootDir = path.join(process.cwd(), "data");
-    const projectDirName = `${username}-${repo}`;
+    // const rootDir = path.join(process.cwd(), "data");
+    // const projectDirName = `${username}-${repo}`;
 
     return c.json({ success: true });
   } catch (error) {
