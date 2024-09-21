@@ -41,4 +41,4 @@ COPY --from=build /app/dist /app/dist
 COPY ./scripts/build-images.js ./scripts/build-images.js
 ADD . . 
 # RUN systemctl enable docker
-CMD ["node", "./scripts/build-images.js", "--", "npm", "start"]
+CMD ["node", "./scripts/build-images.js"]
