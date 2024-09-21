@@ -19,7 +19,7 @@ const checker = new Hono();
 
 checker.post("/:username", async (c) => {
   const signature = c.req.header("Upstash-Signature");
-  const body = await c.req.text();
+  const body = await c.req.json();
 
   invariant(signature, "Signature is required");
   invariant(body, "Request body is required");
@@ -51,8 +51,8 @@ checker.post("/:username", async (c) => {
    *  lint or test failure, write the error to an error.json file.
    */
 
-  const { username, testEnvironment, checkpointPath, repo } =
-    c.req.json() as unknown as RequestBody;
+  // const { username, testEnvironment, checkpointPath, repo } =
+  //   c.req.json() as unknown as RequestBody;
 
   try {
     const isValid = await receiver.verify({
@@ -66,8 +66,14 @@ checker.post("/:username", async (c) => {
         message: "Unauthorized!",
       });
     }
-    // const rootDir = path.join(process.cwd(), "data");
-    // const projectDirName = `${username}-${repo}`;
+    const cloneCommand = `curl -L -o ${body.user}.zip https://github.com/${body.username}/${body.repo}/archive/refs/heads/main.zip
+`;
+    await exec(cloneCommand);
+    try {
+      await exec("unzip test-repo.zip -d test-repo --strip-components=1");
+    } catch (error) {
+      console.error("Error:", error);
+    }
 
     return c.json({ success: true });
   } catch (error) {

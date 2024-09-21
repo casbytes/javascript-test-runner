@@ -4,4 +4,5 @@ WORKDIR /usr/py
 COPY . .
 
 RUN chmod +x script.sh
-ENTRYPOINT ./script.sh
+ENTRYPOINT ["bash", "./script.sh"]
+

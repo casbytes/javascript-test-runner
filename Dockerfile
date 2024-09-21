@@ -2,6 +2,8 @@ FROM node:20-bookworm-slim AS base
 
 ENV NODE_ENV=production
 
+# RUN apt-get update && apt-get install -y docker
+
 FROM base as deps
 
 WORKDIR /app
@@ -36,6 +38,7 @@ WORKDIR /app
 COPY --from=production-deps /app/node_modules /app/node_modules
 COPY --from=build /app/dist /app/dist
 
-ADD . .
-
-CMD ["npm", "start"]
+COPY ./scripts/build-images.js ./scripts/build-images.js
+ADD . . 
+# RUN systemctl enable docker
+CMD ["node", "./scripts/build-images.js", "--", "npm", "start"]
