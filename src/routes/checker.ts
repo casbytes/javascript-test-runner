@@ -69,6 +69,21 @@ checker.post("/:username", async (c) => {
     const cloneCommand = `curl -L -o ${body.user}.zip https://github.com/${body.username}/${body.repo}/archive/refs/heads/main.zip
 `;
     await exec(cloneCommand);
+    const imageName = body.testEnvironment === "python" ? "py" : "js";
+
+    const envVars = {
+      CHECKPOINT_ZIP: "value1",
+      USERNAME: "value2",
+      TEST_ENV: "value3",
+    };
+
+    // Convert environment variables object to the `-e` flag format
+    const envFlags = Object.entries(envVars)
+      .map(([key, value]) => `-e ${key}=${value}`)
+      .join(" ");
+
+    const dockerCommand = `docker run -v /var/run/docker.sock:/var/run/docker.sock -v shared:/usr/shared ${envFlags} ${imageName}`;
+
     try {
       await exec("unzip test-repo.zip -d test-repo --strip-components=1");
     } catch (error) {

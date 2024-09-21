@@ -4,20 +4,20 @@ import { execSync } from "node:child_process";
 
 const docker = new Docker();
 
-function getAllFilesInDirectory(dirPath) {
+function getAllFilesInImagePath(dirPath) {
   try {
     const files = fs.readdirSync(dirPath);
     return files.map((file) => file);
   } catch (error) {
     console.error(`Error reading directory: ${error}`);
-    return [];
+    process.exit(1)
   }
 }
 
 async function buildImage(imageName) {
   const imagePath = `./images/${imageName}/`;
   const imageTag = `${imageName}:latest`;
-  const files = getAllFilesInDirectory(imagePath);
+  const files = getAllFilesInImagePath(imagePath);
   const tarStream = await docker.buildImage(
     { context: imagePath, src: ["Dockerfile", ...files] },
     { t: imageTag }
