@@ -12,12 +12,12 @@ TEST_ENV=$3
 BASE_DIR="/shared"
 
 CHECKPOINT_FOLDER_NAME=$(basename "$CHECKPOINT_ZIP" .zip)
-RESULTS_DIR="$BASE_DIR/${USERNAME}-${CHECKPOINT_FOLDER_NAME}"  # Use USERNAME instead of GITHUB_USERNAME
+RESULTS_DIR="$BASE_DIR/${USERNAME}-${CHECKPOINT_FOLDER_NAME}"  
 CONFIG_FILE="./vitest.config.ts"
 TEST_RESULTS="$RESULTS_DIR/test-results.json"
 ERRORS="$RESULTS_DIR/errors.json"
 
-mkdir -p "$RESULTS_DIR"  # Quote the variable to handle spaces
+mkdir -p "$RESULTS_DIR"  || { echo "Error creating directory $RESULTS_DIR"; exit 1; }
 
 echo "Unzipping $CHECKPOINT_ZIP..."
 if ! unzip "$CHECKPOINT_ZIP" -d "$RESULTS_DIR" --strip-components=1; then
