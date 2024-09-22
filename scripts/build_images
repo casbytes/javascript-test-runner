@@ -1,0 +1,39 @@
+#!/bin/bash
+
+set -e
+
+export DOCKER_HOST="tcp://[fdaa:3:66f7:a7b:329:17ff:dfd1:2]:2375"
+
+build_image() {
+    local image_name=$1
+    local image_path="./images/${image_name}/"
+    local image_tag="${image_name}:latest"
+
+    echo "Building Docker image: $image_tag"
+    docker build -t "$image_tag" "$image_path"
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to build image $image_name"
+        exit 1
+    fi
+
+    echo "Successfully built image $image_name."
+}
+
+build_images() {
+    local images=("js" "py")
+    for image in "${images[@]}"; do
+        echo "Building image: $image"
+        build_image "$image"
+    done
+}
+
+echo "Building Docker images..."
+build_images
+
+echo "Starting the application..."
+npm start
+
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to start the application."
+    exit 1
+fi

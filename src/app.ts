@@ -1,140 +1,18 @@
 import "dotenv/config";
-import invariant from "tiny-invariant";
-import path from "node:path";
-import fsExtra from "fs-extra";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
-import {
-  cleanUp,
-  cloneRepo,
-  createTar,
-  extractTar,
-  runLinter,
-  runTests,
-} from "./utils/helpers";
-import { TEST_SPACE } from "./utils/simple-git";
+import { checker, healtcheck } from "./routes";
 
-const CLIENT_IP_ADDRESS = process.env.CLIENT_IP_ADDRESS;
 const app = new Hono();
 
-app.get("/", async (c) => {
-  return c.json({ message: "JavaScript Checker." });
+app.get("/", (c) => {
+  return c.json({ message: "Test runner." });
 });
+app.route("/checker", checker);
+app.route("/healthcheck", healtcheck);
 
-/**
- * POST /:username
- * @param {string} username - Student GitHub username
- * @param {string} repo - Student GitHub repository name
- * @param {string} path - Checkpoint path
- * @param {string} X-Test-Env - Test environment (node | browser)
- * @param {string} X-Forwarded-For - Client IP address
- */
-app.post("/:username", async (c) => {
-  const USERNAME = c.req.param("username");
-  const REPO = c.req.query("repo");
-  const PATH = c.req.query("path");
-  const TEST_ENV = c.req.header("X-Test-Env") as "node" | "browser";
-  const ADDRESSES = c.req.header("X-Forwarded-For") as string;
-
-  invariant(REPO, "Repo name is required");
-  invariant(USERNAME, "Username is required");
-  invariant(PATH, "Checkpoint path is required");
-  invariant(TEST_ENV, "Test environment is required");
-  invariant(
-    ADDRESSES.split(",")[0] === CLIENT_IP_ADDRESS,
-    "Invalid client IP address"
-  );
-
-  const TESTSPACE = path.join(process.cwd(), TEST_SPACE);
-  const REPO_URL = `${USERNAME}/${REPO}`;
-  const GITHUB_REPO_URL = `https://github.com/${REPO_URL}.git`;
-
-  const FOLDER_NAME = `${USERNAME}-${REPO}`;
-  const CHECKPOINT_TEMP_DIR = path.join(TESTSPACE, `${FOLDER_NAME}.temp`);
-  const CHECKPOINT_TAR_DIR = path.join(TESTSPACE, `${FOLDER_NAME}.tar.gz`);
-
-  const CHECKPOINT_PATH = path.join(CHECKPOINT_TEMP_DIR, PATH);
-  const CHECKPOINT_DIR = path.join(TESTSPACE, FOLDER_NAME);
-  const CHECKPOINT_SRC_DIR = path.join(CHECKPOINT_PATH, "src");
-
-  const ESLINT_CONFIG = path.join(TESTSPACE, "eslint.config.mjs");
-  const VITEST_CONFIG = path.join(TESTSPACE, "vitest.config.ts");
-  const ESLINT_RESULTS = path.join(CHECKPOINT_DIR, "lint-results.json");
-  const TEST_RESULTS = path.join(CHECKPOINT_DIR, "test-results.json");
-
-  try {
-    await cloneRepo(GITHUB_REPO_URL, CHECKPOINT_TEMP_DIR);
-    await createTar(CHECKPOINT_SRC_DIR, CHECKPOINT_TAR_DIR);
-    await extractTar(CHECKPOINT_TAR_DIR, CHECKPOINT_DIR);
-    const { stderr: lintStderr } = await runLinter(
-      ESLINT_CONFIG,
-      CHECKPOINT_DIR,
-      ESLINT_RESULTS
-    );
-    const { stderr: testStderr } = await runTests(
-      VITEST_CONFIG,
-      TEST_ENV,
-      CHECKPOINT_DIR,
-      TEST_RESULTS
-    );
-
-    let error = null;
-    let lintResults = null;
-    let testResults = null;
-
-    if (lintStderr || testStderr) {
-      error = lintStderr || testStderr;
-    }
-
-    if (fsExtra.existsSync(ESLINT_RESULTS)) {
-      lintResults = await fsExtra.readJson(ESLINT_RESULTS);
-    }
-
-    if (fsExtra.existsSync(TEST_RESULTS)) {
-      testResults = await fsExtra.readJson(TEST_RESULTS);
-    }
-
-    return c.json({ lintResults, testResults, error });
-  } catch (error) {
-    throw new HTTPException(500, {
-      message: error instanceof Error ? error.message : "Internal Server Error",
-    });
-  } finally {
-    try {
-      cleanUp(CHECKPOINT_TEMP_DIR, CHECKPOINT_TAR_DIR, CHECKPOINT_DIR);
-    } catch (cleanupError) {
-      console.error(
-        `Cleanup error: ${
-          cleanupError instanceof Error ? cleanupError.message : cleanupError
-        }`
-      );
-    }
-  }
-});
-
-/**
- * Healthcheck endpoint
- */
-app.get("/healthcheck", async (c) => {
-  const host =
-    c.req.header("X-Forwarded-Host") ?? c.req.header("host") ?? "localhost";
-  console.log("Healthcheck", host);
-
-  try {
-    await Promise.all([
-      //some other checks
-      fetch(`${new URL(c.req.url).protocol}${host}`, {
-        method: "HEAD",
-        headers: { "X-Healthcheck": "true" },
-      }).then((r) => {
-        if (!r.ok) return Promise.reject(r);
-      }),
-    ]);
-    return new Response("OK");
-  } catch (error: unknown) {
-    console.error(c.req.url, "healthcheck ❌", { error });
-    return new Response("ERROR", { status: 500 });
-  }
+app.get("*", () => {
+  throw new HTTPException(404, { message: "Route not found." });
 });
 
 export { app };
